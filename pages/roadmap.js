@@ -5,8 +5,8 @@ export function renderRoadmap(PHASES, state, currentRole) {
   const donePhases = s.phases || [];
   const doneTasks = s.tasks || [];
   const passedQuizzes = s.quizzes || [];
-  const shared = JSON.parse(localStorage.getItem('devmentor_shared') || '{}');
-  const userPaid = shared.payments?.[localStorage.getItem('devmentor_current_user')] || [];
+  const userShared = JSON.parse(localStorage.getItem('devmentor_shared') || '{}');
+  const userPaid = userShared.payments?.[localStorage.getItem('devmentor_current_user')] || [];
   
   // Payment to phase mapping
   const phasePaymentMap = {
