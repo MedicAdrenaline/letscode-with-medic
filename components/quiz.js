@@ -1,6 +1,7 @@
-export function renderQuiz(phase, state, onPass) {
+export function renderQuiz(phase, state) {
   const quizKey = `quiz_${phase.id}`;
-  const passed = (state.quizzes || []).includes(phase.id);
+  const s = typeof state === 'function' ? state() : state;
+  const passed = (s.quizzes || []).includes(phase.id);
 
   if (passed) {
     return `<div class="quiz-passed">

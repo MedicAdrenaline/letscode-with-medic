@@ -59,7 +59,7 @@ export function renderRoadmap(PHASES, state, currentRole) {
 
     const quizHTML = (p.quiz && p.quiz.length) ? `
       <div style="margin-top:24px">
-        ${renderQuiz(p, s, null)}
+        ${renderQuiz(p, s)}
       </div>` : '';
 
     const canMarkDone = quizPassed || !p.quiz || p.quiz.length === 0 || currentRole === 'mentor';
