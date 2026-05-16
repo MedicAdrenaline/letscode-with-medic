@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Code — Learn Code by Medic Adrenaline</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #f97316;
+    --accent2: #22d3ee;
+    --accent3: #a3e635;
+    --purple: #a78bfa;
+    --text: #e8e8e8;
+    --text-dim: #666;
+    --text-mid: #999;
+    --success: #22d3ee;
+    --glow: 0 0 30px rgba(249,115,22,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* =================== LOGIN =================== */
+  #login-view {
+    min-height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+  }
+
+  #login-view.active { display: flex; }
+
+  .login-glow {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .login-logo span { color: var(--accent); }
+
+  .login-tagline {
+    font-size: 13px;
+    color: var(--accent3);
+    margin-bottom: 28px;
+    font-family: 'DM Mono', monospace;
+    font-style: italic;
+    letter-spacing: 0.3px;
+  }
+
+  .login-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .field-wrap { margin-bottom: 20px; }
+
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.99); }
+
+  .login-error {
+    color: #f87171;
+    font-size: 13px;
+    margin-top: 12px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    display: none;
+  }
+
+  .role-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .role-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .role-tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* =================== LAYOUT =================== */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .sidebar-logo span { color: var(--accent); }
+
+  .sidebar-user {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+
+  .user-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .sidebar-nav {
+    padding: 16px 12px;
+    flex: 1;
+  }
+
+  .nav-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    padding: 0 12px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .nav-section-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-mid);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(249,115,22,0.1); color: var(--accent); }
+
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-bottom {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 14px;
+    transition: all 0.2s;
+    width: 100%;
+    background: none;
+    border: none;
+  }
+
+  .logout-btn:hover { color: #f87171; background: rgba(248,113,113,0.06); }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 40px 48px;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  /* SECTION PAGES */
+  .section-page { display: none; }
+  .section-page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 36px;
+  }
+
+  .page-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .page-desc {
+    color: var(--text-mid);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-card:nth-child(2) .stat-val { color: var(--accent2); }
+  .stat-card:nth-child(3) .stat-val { color: var(--accent3); }
+  .stat-card:nth-child(4) .stat-val { color: var(--purple); }
+
+  .stat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* PROGRESS BAR */
+  .prog-bar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 28px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .prog-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .prog-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 0 12px rgba(249,115,22,0.4);
+  }
+
+  .prog-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* PHASE CARDS */
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    position: relative;
+  }
+
+  .phase-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .phase-card.unlocked::after { opacity: 1; }
+  .phase-card.completed { border-color: rgba(34,211,238,0.25); }
+  .phase-card.completed::after { background: var(--accent2); opacity: 1; }
+
+  .phase-head {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .phase-head:hover { background: rgba(255,255,255,0.02); }
+
+  .phase-num-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 2px;
+  }
+
+  .phase-card.completed .phase-num-badge { border-color: var(--accent2); color: var(--accent2); }
+
+  .phase-name {
+    flex: 1;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .phase-card.completed .phase-name { color: var(--accent2); }
+
+  .phase-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+
+  .tag-orange { background: rgba(249,115,22,0.1); color: var(--accent); border: 1px solid rgba(249,115,22,0.2); }
+  .tag-cyan { background: rgba(34,211,238,0.1); color: var(--accent2); border: 1px solid rgba(34,211,238,0.2); }
+  .tag-green { background: rgba(163,230,53,0.1); color: var(--accent3); border: 1px solid rgba(163,230,53,0.2); }
+  .tag-purple { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+  .mark-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .mark-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .phase-card.completed .mark-btn { border-color: var(--accent2); color: var(--accent2); background: rgba(34,211,238,0.06); }
+
+  .chevron {
+    color: var(--text-dim);
+    transition: transform 0.3s;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .phase-card.open .chevron { transform: rotate(180deg); }
+
+  .phase-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .phase-card.open .phase-body { max-height: 3000px; }
+
+  .phase-content {
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .section-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+
+  .section-lbl:first-child { margin-top: 0; }
+
+  /* TASK LIST */
+  .tasks { display: flex; flex-direction: column; gap: 6px; }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .task-item:hover { border-color: rgba(249,115,22,0.3); }
+
+  .task-item.done { border-color: rgba(34,211,238,0.2); background: rgba(34,211,238,0.03); }
+
+  .task-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--text-dim);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+
+  .task-item.done .task-check {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #000;
+  }
+
+  .task-text { font-size: 14px; font-weight: 400; flex: 1; }
+  .task-item.done .task-text { color: var(--text-dim); text-decoration: line-through; }
+
+  /* RESOURCES */
+  .resources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+  .resource-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .resource-link:hover { border-color: var(--accent2); background: rgba(34,211,238,0.05); }
+
+  /* NOTES BOX */
+  .notes-box {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(249,115,22,0.04);
+    border: 1px solid rgba(249,115,22,0.15);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .notes-box strong { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; display: block; margin-bottom: 6px; }
+
+  /* =================== PAYMENTS =================== */
+  .payment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+
+  .payment-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .payment-card:hover { border-color: var(--accent); }
+
+  .payment-card.paid { border-color: rgba(34,211,238,0.3); }
+
+  .payment-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .payment-card:hover::before, .payment-card.paid::before { opacity: 1; }
+
+  .payment-card.paid::before { background: linear-gradient(90deg, var(--accent2), var(--accent3)); }
+
+  .payment-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .payment-desc {
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .payment-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .payment-card.paid .payment-price { color: var(--accent2); }
+
+  .pay-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pay-btn-active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .pay-btn-active:hover { opacity: 0.9; }
+
+  .pay-btn-done {
+    background: rgba(34,211,238,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(34,211,238,0.3);
+    cursor: default;
+  }
+
+  .payment-includes {
+    margin-bottom: 20px;
+  }
+
+  .payment-includes-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .include-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 5px;
+  }
+
+  .include-item::before {
+    content: '✓';
+    color: var(--accent2);
+    font-size: 12px;
+  }
+
+  /* PAYMENT HISTORY */
+  .pay-history {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .pay-history-head {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 24px;
+  }
+
+  .pay-row {
+    padding: 14px 24px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 24px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .pay-row:last-child { border-bottom: none; }
+
+  .pay-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  .pay-status.done { background: rgba(34,211,238,0.1); color: var(--accent2); }
+  .pay-status.pending { background: rgba(249,115,22,0.1); color: var(--accent); }
+
+  .pay-amount { font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  /* ADMIN PANEL */
+  .admin-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .admin-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .student-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .student-row:last-child { border-bottom: none; }
+
+  .student-prog {
+    flex: 1;
+  }
+
+  .student-prog-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .student-prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    border-radius: 2px;
+  }
+
+  .admin-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .admin-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+
+  .badge-paid { background: rgba(34,211,238,0.1); color: var(--accent2); }
+  .badge-unpaid { background: rgba(249,115,22,0.1); color: var(--accent); }
+
+  /* ANNOUNCE */
+  .announce-box {
+    background: rgba(249,115,22,0.06);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .announce-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .announce-text { font-size: 13px; color: var(--text-mid); }
+
+  textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    margin-top: 8px;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: var(--accent); }
+
+  .btn-sm {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 10px;
+  }
+
+  .btn-orange { background: var(--accent); color: #fff; }
+  .btn-orange:hover { opacity: 0.85; }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .app-layout { grid-template-columns: 1fr; }
+    .sidebar { position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: auto; flex-direction: row; border-right: none; border-top: 1px solid var(--border); z-index: 100; }
+    .sidebar-logo, .sidebar-user, .sidebar-bottom { display: none; }
+    .sidebar-nav { display: flex; flex-direction: row; padding: 8px; overflow-x: auto; gap: 4px; }
+    .nav-section-label { display: none; }
+    .nav-item { flex-direction: column; gap: 2px; font-size: 10px; padding: 8px 12px; white-space: nowrap; }
+    .nav-icon { font-size: 18px; }
+    .main { padding: 20px 16px 100px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .prog-bar-wrap { flex-wrap: wrap; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-view" class="view active">
+  <div class="login-glow"></div>
+  <div class="login-box">
+    <div class="login-logo">Let's<span>Code</span></div>
+    <div class="login-sub">// learn code by Medic Adrenaline</div>
+    <div class="login-tagline">Do you want to start your programming journey?</div>
+    <div class="role-tabs">
+      <div class="role-tab active" onclick="setRole('student')">STUDENT</div>
+      <div class="role-tab" onclick="setRole('mentor')">MENTOR</div>
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Username</label>
+      <input type="text" id="username" placeholder="Enter your name">
+    </div>
+    <div class="field-wrap">
+      <label class="field-label">Password</label>
+      <input type="password" id="password" placeholder="Enter password">
+    </div>
+    <button class="btn-primary" onclick="login()">Enter Portal →</button>
+    <div class="login-error" id="login-error">Invalid credentials. Try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-view" class="view">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Let's<span>Code</span></div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sb-avatar">O</div>
+        <div class="user-info">
+          <div class="user-name" id="sb-name">Oluwadamilola</div>
+          <div class="user-role" id="sb-role">STUDENT</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-bottom">
+        <button class="logout-btn" onclick="logout()">⬅ &nbsp;Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="main-content"></main>
+
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const CREDENTIALS = {
+  mentor: { pass: 'mentor123', role: 'mentor', display: 'Medic Adrenaline' },
+  oluwadamilola: { pass: 'dami123', role: 'student', display: 'Oluwadamilola' },
+};
+
+const PHASES = [
+  {
+    id: 0,
+    label: 'PHASE 00',
+    name: 'Mindset & Orientation',
+    tag: 'START HERE', tagClass: 'tag-orange',
+    week: '2 weeks',
+    locked: false,
+    tasks: [
+      { id: 't0_1', text: 'Understand what coding is: Writing instructions in a language a computer can understand. Every app, website, and software you use was built by someone writing code.' },
+      { id: 't0_2', text: 'Learn what a Programming Language is: Just like English or Yoruba, programming languages have rules and vocabulary. Examples: HTML, CSS, JavaScript, Python. Each language has a purpose.' },
+      { id: 't0_3', text: 'Understand HTML: HyperText Markup Language. It is the skeleton of every webpage. It tells the browser "put a heading here, put an image there, here is a button." It is NOT actually a programming language — it is a markup language that structures content.' },
+      { id: 't0_4', text: 'Understand CSS: Cascading Style Sheets. It is the design layer. It takes your HTML skeleton and adds color, fonts, spacing, animations. Without CSS, every website looks like a plain document.' },
+      { id: 't0_5', text: 'Understand JavaScript: The brain of a website. It makes things interactive — when you click a button and something happens, that is JavaScript. It is a real programming language and it runs inside your browser.' },
+      { id: 't0_6', text: 'Understand Python: A very popular general-purpose programming language. It is used for data science, AI, automation, backend web development, and more. Known for being beginner-friendly. Not used to build website visuals — it works behind the scenes.' },
+      { id: 't0_7', text: 'Understand Frontend vs Backend: Frontend is everything the user sees — the design, buttons, forms. You build it with HTML, CSS, JavaScript. Backend is the engine behind the scenes — the database, logic, and server. Built with languages like Python, Node.js, PHP.' },
+      { id: 't0_8', text: 'Understand Full-Stack: A developer who can do both frontend AND backend is called a Full-Stack Developer. They can build an entire product alone. This is the goal of this bootcamp.' },
+      { id: 't0_9', text: 'Understand what a Framework is: A framework is a pre-built set of tools that makes coding faster. React is a JavaScript framework for building UIs. Flask and Django are Python frameworks for building backends. You do not start with frameworks — you learn the base language first.' },
+      { id: 't0_10', text: 'Understand what a Library is: Similar to a framework but smaller. A library gives you ready-made code you can pull in to do specific tasks. Lodash (JS utility functions), Pandas (Python data handling) are examples. Think of it as: framework = full kitchen setup, library = one good knife.' },
+      { id: 't0_11', text: 'Understand what a Database is: A database stores information. When you register on a website, your email and password go into a database. Common databases: MySQL (tables like Excel), MongoDB (stores data like JSON objects). The backend talks to the database.' },
+      { id: 't0_12', text: 'Understand what an API is: Application Programming Interface. It is a bridge between two systems. When a weather app shows you today\'s temperature, it got that data from a weather API. You will build and use APIs as a developer.' },
+      { id: 't0_13', text: 'Understand what Deployment means: When you finish building a website on your laptop, it only exists locally. Deployment means pushing it to the internet so anyone in the world can visit it. Platforms like Render, Vercel, Netlify host your app for free.' },
+      { id: 't0_14', text: 'Understand what a Server is: A server is just a computer that is always on and connected to the internet. When someone visits your website, their browser sends a request to your server, and the server sends back the webpage.' },
+      { id: 't0_15', text: 'Understand what a Domain is: A domain is a website\'s address — like google.com or yourname.dev. You buy it from registrars like Namecheap. Without a domain, your site has a long ugly link. With it, it looks professional.' },
+      { id: 't0_16', text: 'Understand Version Control & Git: Git is a tool that tracks every change you make to your code. If you break something, you can go back. GitHub is an online platform where you store and share your code. Every developer uses it.' },
+      { id: 't0_17', text: 'Understand what a Repository (Repo) is: A repository is a project folder tracked by Git. When you start a project, you create a repo. It holds all your files and the full history of every change ever made.' },
+      { id: 't0_18', text: 'Understand the Stack: The "stack" is the combination of technologies used to build a product. Example: HTML + CSS + JavaScript (frontend) + Python Flask (backend) + MySQL (database) = a full stack. You will learn to think in stacks.' },
+      { id: 't0_19', text: 'Understand common dev terms — Terminal/Command Line: A text-based interface to control your computer. Instead of clicking, you type commands. It sounds scary but you will get used to it fast. Every developer uses the terminal.' },
+      { id: 't0_20', text: 'Write honestly: Why do I want to learn coding? What do I want to build or earn in 2 years? Keep this somewhere you can read it on hard days.' },
+    ],
+    explanations: [
+      { label: 'What is Coding?', body: 'Coding is the process of writing instructions that tell a computer what to do. These instructions are written in a programming language — a structured set of words and rules the computer understands. Everything digital: apps, websites, games, ATMs, hospital systems — all of it runs on code.' },
+      { label: 'Frontend vs Backend vs Full-Stack', body: 'Frontend = what users see and interact with. Built with HTML (structure), CSS (design), JavaScript (interactivity). Backend = the server side — logic, databases, authentication. Built with Python, Node.js, PHP etc. Full-Stack = both. A full-stack developer can build an entire product independently.' },
+      { label: 'Common Stack Terms', body: 'HTML: page structure. CSS: styling. JavaScript: interactivity. Python: backend & data. React: JS framework for UIs. Flask/Django: Python web frameworks. MySQL/MongoDB: databases. API: bridge between systems. Git: version tracking. GitHub: online code storage. Deployment: putting your site on the internet. Server: a computer that serves your website. Domain: your website\'s address (e.g. mysite.com).' },
+    ],
+    note: 'No laptop or tools needed yet. This phase is pure understanding. Read everything slowly. Ask your mentor questions on WhatsApp. Your job is to walk into Phase 01 knowing what all the key words mean.'
+  },
+  {
+    id: 1,
+    label: 'PHASE 01',
+    name: 'Setup & How The Web Works',
+    tag: 'FOUNDATIONS', tagClass: 'tag-cyan',
+    week: '2-3 weeks',
+    locked: true,
+    tasks: [
+      { id: 't1_1', text: 'Install Google Chrome on your laptop — this is the best browser for web development because of its built-in developer tools.' },
+      { id: 't1_2', text: 'Install VS Code (Visual Studio Code) on your laptop — this is a free code editor made by Microsoft. It is what you will use to write all your code. Download from code.visualstudio.com.' },
+      { id: 't1_3', text: 'Create a GitHub account at github.com — use your real name or a professional username. This is your developer identity on the internet. Treat it like a portfolio.' },
+      { id: 't1_4', text: 'Open VS Code and explore its interface — learn the file explorer, terminal, and extensions sidebar. Send a screenshot to your mentor confirming it is open and working.' },
+      { id: 't1_5', text: 'Learn what HTML is in practice: Open VS Code, create a file called index.html, type basic HTML tags, and open it in Chrome. Watch your code come alive in the browser.' },
+      { id: 't1_6', text: 'Learn what CSS does in practice: Create a style.css file, link it to your HTML, and change colors and fonts. Understand the relationship between HTML and CSS files.' },
+      { id: 't1_7', text: 'Learn what happens when you type google.com and press Enter: Your browser sends a request to Google\'s server → the server processes it → it sends back HTML/CSS/JS files → your browser renders them as a webpage. This is called the Request-Response Cycle.' },
+      { id: 't1_8', text: 'Understand what a browser does: A browser (Chrome, Firefox) is a program that reads HTML, CSS, and JavaScript files and displays them visually. It is your main tool for viewing and testing your work.' },
+      { id: 't1_9', text: 'Build: A webpage about yourself using only HTML — your name, a short bio, and 3 things you like. No CSS yet. Just structure.' },
+      { id: 't1_10', text: 'Style your personal webpage with CSS — add colors, change the font, adjust spacing. Make it look like you.' },
+      { id: 't1_11', text: 'Learn the VS Code terminal — open the built-in terminal in VS Code (View → Terminal). Practice basic commands: pwd (where am I?), ls (list files), cd (change folder).' },
+      { id: 't1_12', text: 'Push your personal webpage to GitHub — your mentor will walk you through initializing a Git repo, making your first commit, and pushing to GitHub.' },
+    ],
+    explanations: [
+      { label: 'Why Google Chrome?', body: 'Chrome has the best DevTools — a built-in set of tools for inspecting HTML/CSS, debugging JavaScript, checking network requests, and testing responsiveness. Right-click anything on a webpage and click "Inspect" to see it in action.' },
+      { label: 'What is VS Code?', body: 'VS Code (Visual Studio Code) is a free, lightweight code editor. It has syntax highlighting (colors your code by type), auto-complete, an integrated terminal, and thousands of extensions. It is the most popular editor in the world among web developers.' },
+      { label: 'What is GitHub?', body: 'GitHub is an online platform where developers store, share, and collaborate on code. Your GitHub profile becomes your developer portfolio — employers and clients will check it. Every project you build in this bootcamp will live on GitHub.' },
+      { label: 'The Request-Response Cycle', body: 'When you visit a website: 1) Your browser sends an HTTP request to a server. 2) The server processes it and finds the files. 3) The server sends back a response (the HTML, CSS, JS files). 4) Your browser reads those files and renders the page. This happens in milliseconds, every single time.' },
+    ],
+    note: 'Milestone: By the end of Phase 01, your laptop is set up, you understand how the web works, and you have a real personal webpage with your name on it.'
+  },
+  {
+    id: 2,
+    label: 'PHASE 02',
+    name: 'Programming Logic with JavaScript',
+    tag: 'CORE SKILL', tagClass: 'tag-green',
+    week: '3-4 weeks',
+    locked: true,
+    tasks: [
+      { id: 't2_1', text: 'Coming soon — unlocks after Phase 01' },
+    ],
+    explanations: [],
+    note: 'Complete Phase 01 to unlock this phase.'
+  },
+  {
+    id: 3,
+    label: 'PHASE 03',
+    name: 'Real Web Development',
+    tag: 'BUILD STUFF', tagClass: 'tag-purple',
+    week: '4-6 weeks',
+    locked: true,
+    tasks: [
+      { id: 't3_1', text: 'Coming soon — unlocks after Phase 02' },
+    ],
+    explanations: [],
+    note: 'Complete Phase 02 to unlock this phase.'
+  },
+  {
+    id: 4,
+    label: 'PHASE 04',
+    name: 'Making Money as a Developer',
+    tag: 'THE GOAL', tagClass: 'tag-orange',
+    week: 'Ongoing',
+    locked: true,
+    tasks: [
+      { id: 't4_1', text: 'Coming soon — unlocks after Phase 03' },
+    ],
+    explanations: [],
+    note: 'Complete Phase 03 to unlock this phase.'
+  }
+];
+
+const PAYMENTS = [
+  {
+    id: 'onboarding',
+    title: 'Onboarding Fee',
+    desc: 'One-time fee to join the DevMentor bootcamp. Covers orientation, environment setup, and Phase 0.',
+    price: '₦10,000',
+    includes: ['Phase 0 full access', 'Personal onboarding call', 'WhatsApp support', 'Starter resources']
+  },
+  {
+    id: 'phase1_course',
+    title: 'Phase 1 Course',
+    desc: 'HTML & CSS structured course. Covers everything from scratch with exercises and projects.',
+    price: '₦15,000',
+    includes: ['Full HTML & CSS course', 'Project feedback', 'Phase 1 tasks unlocked', 'Certificate on completion']
+  },
+  {
+    id: 'phase2_course',
+    title: 'Phase 2 Course',
+    desc: 'JavaScript fundamentals course. Takes you from zero to building real interactive apps.',
+    price: '₦20,000',
+    includes: ['Full JavaScript course', 'DOM project reviews', 'Phase 2 tasks unlocked', 'Direct mentor support']
+  },
+  {
+    id: 'mentorship_monthly',
+    title: 'Monthly Mentorship',
+    desc: 'Ongoing 1-on-1 mentorship. Weekly check-ins, code reviews, and career guidance.',
+    price: '₦25,000/mo',
+    includes: ['Weekly 1hr video call', 'Unlimited WhatsApp support', 'Code reviews', 'Project team access']
+  }
+];
+
+// ===================== STATE =====================
+let currentUser = null;
+let currentRole = null;
+let selectedRole = 'student';
+let currentPage = 'roadmap';
+
+function getState() {
+  const key = `devmentor_${currentUser}`;
+  const raw = localStorage.getItem(key);
+  return raw ? JSON.parse(raw) : { tasks: [], phases: [], payments: [], announcements: [] };
+}
+
+function saveState(state) {
+  localStorage.setItem(`devmentor_${currentUser}`, JSON.stringify(state));
+}
+
+function getSharedState() {
+  const raw = localStorage.getItem('devmentor_shared');
+  return raw ? JSON.parse(raw) : { announcements: [], payments: {} };
+}
+
+function saveSharedState(s) {
+  localStorage.setItem('devmentor_shared', JSON.stringify(s));
+}
+
+// ===================== AUTH =====================
+function setRole(r) {
+  selectedRole = r;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function login() {
+  const u = document.getElementById('username').value.trim().toLowerCase();
+  const p = document.getElementById('password').value;
+  const err = document.getElementById('login-error');
+
+  if (CREDENTIALS[u] && CREDENTIALS[u].pass === p) {
+    currentUser = u;
+    currentRole = CREDENTIALS[u].role;
+    err.style.display = 'none';
+    showApp();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+function logout() {
+  currentUser = null;
+  currentRole = null;
+  document.getElementById('login-view').classList.add('active');
+  document.getElementById('app-view').classList.remove('active');
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+function showApp() {
+  document.getElementById('login-view').classList.remove('active');
+  document.getElementById('app-view').classList.add('active');
+  document.getElementById('sb-name').textContent = CREDENTIALS[currentUser].display;
+  document.getElementById('sb-role').textContent = currentRole.toUpperCase();
+  document.getElementById('sb-avatar').textContent = CREDENTIALS[currentUser].display[0].toUpperCase();
+  buildSidebar();
+  navigate('roadmap');
+}
+
+// ===================== SIDEBAR =====================
+function buildSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  const items = currentRole === 'mentor'
+    ? [
+        { id: 'roadmap', icon: '🗺️', label: 'Roadmap' },
+        { id: 'students', icon: '👥', label: 'Students' },
+        { id: 'payments_admin', icon: '💰', label: 'Payments' },
+        { id: 'announce', icon: '📣', label: 'Announce' },
+      ]
+    : [
+        { id: 'roadmap', icon: '🗺️', label: 'Roadmap' },
+        { id: 'payments', icon: '💳', label: 'Payments' },
+        { id: 'resources', icon: '📚', label: 'Resources' },
+      ];
+
+  nav.innerHTML = items.map(i => `
+    <div class="nav-item" id="nav-${i.id}" onclick="navigate('${i.id}')">
+      <span class="nav-icon">${i.icon}</span> ${i.label}
+    </div>
+  `).join('');
+}
+
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${page}`);
+  if (navEl) navEl.classList.add('active');
+  renderPage(page);
+}
+
+// ===================== PAGES =====================
+function renderPage(page) {
+  const main = document.getElementById('main-content');
+  if (page === 'roadmap') main.innerHTML = renderRoadmap();
+  else if (page === 'payments') main.innerHTML = renderPayments();
+  else if (page === 'resources') main.innerHTML = renderResources();
+  else if (page === 'students') main.innerHTML = renderStudents();
+  else if (page === 'payments_admin') main.innerHTML = renderPaymentsAdmin();
+  else if (page === 'announce') main.innerHTML = renderAnnounce();
+  attachHandlers(page);
+}
+
+// ===================== ROADMAP =====================
+function renderRoadmap() {
+  const state = getState();
+  const donePhases = state.phases || [];
+  const doneTasks = state.tasks || [];
+  const totalTasks = PHASES.reduce((n, p) => n + p.tasks.length, 0);
+  const pct = Math.round((donePhases.length / PHASES.length) * 100);
+
+  const shared = getSharedState();
+  const announce = shared.announcements?.[0];
+  const announceHTML = announce ? `
+    <div class="announce-box">
+      <div class="announce-title">📣 From Mentor</div>
+      <div class="announce-text">${announce}</div>
+    </div>` : '';
+
+  const phasesHTML = PHASES.map(p => {
+    const done = donePhases.includes(p.id);
+    const isLocked = p.locked && currentRole !== 'mentor';
+
+    if (isLocked) {
+      return `<div class="phase-card" id="phase-${p.id}" style="opacity:0.45;pointer-events:none;">
+        <div class="phase-head" style="cursor:default;">
+          <div class="phase-num-badge">${p.label}</div>
+          <div class="phase-name" style="color:var(--text-dim)">${p.name}</div>
+          <div class="phase-actions">
+            <span class="tag ${p.tagClass}">${p.tag}</span>
+            <span class="tag tag-cyan" style="font-size:9px">${p.week}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:1px;padding:5px 12px;border:1px solid var(--border);border-radius:6px;">🔒 LOCKED</span>
+          </div>
+          <span class="chevron" style="opacity:0.3">▼</span>
+        </div>
+      </div>`;
+    }
+
+    const tasksHTML = p.tasks.map(t => {
+      const checked = doneTasks.includes(t.id);
+      return `<div class="task-item ${checked ? 'done' : ''}" data-task="${t.id}">
+        <div class="task-check">${checked ? '✓' : ''}</div>
+        <div class="task-text">${t.text}</div>
+      </div>`;
+    }).join('');
+
+    const explHTML = (p.explanations && p.explanations.length) ? `
+      <div class="section-lbl" style="margin-top:20px">// CONCEPTS EXPLAINED</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${p.explanations.map(e => `
+          <div style="background:rgba(34,211,238,0.04);border:1px solid rgba(34,211,238,0.12);border-radius:8px;padding:14px 16px;">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;margin-bottom:6px;">${e.label}</div>
+            <div style="font-size:13px;color:var(--text-mid);line-height:1.7;">${e.body}</div>
+          </div>
+        `).join('')}
+      </div>` : '';
+
+    return `<div class="phase-card ${done ? 'completed' : 'unlocked'}" id="phase-${p.id}">
+      <div class="phase-head" onclick="togglePhase(${p.id})">
+        <div class="phase-num-badge">${p.label}</div>
+        <div class="phase-name">${p.name}</div>
+        <div class="phase-actions">
+          <span class="tag ${p.tagClass}">${p.tag}</span>
+          <span class="tag tag-cyan" style="font-size:9px">${p.week}</span>
+          <button class="mark-btn" onclick="event.stopPropagation();markPhase(${p.id})">${done ? '✓ DONE' : 'MARK DONE'}</button>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="section-lbl">TASKS</div>
+          <div class="tasks">${tasksHTML}</div>
+          ${explHTML}
+          <div class="notes-box"><strong>// MENTOR NOTE</strong>${p.note}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="page-header">
+      <div class="page-tag">// WEB DEV BOOTCAMP</div>
+      <div class="page-title">Your Learning Roadmap</div>
+      <div class="page-desc">Phase by phase. Task by task. Medic Adrenaline's got you.</div>
+    </div>
+    ${announceHTML}
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-val">${donePhases.length}/${PHASES.length}</span><span class="stat-lbl">PHASES DONE</span></div>
+      <div class="stat-card"><span class="stat-val">${doneTasks.length}</span><span class="stat-lbl">TASKS CLEARED</span></div>
+      <div class="stat-card"><span class="stat-val">${pct}%</span><span class="stat-lbl">COMPLETION</span></div>
+      <div class="stat-card"><span class="stat-val">${totalTasks - doneTasks.length}</span><span class="stat-lbl">TASKS LEFT</span></div>
+    </div>
+    <div class="prog-bar-wrap">
+      <span class="prog-label">OVERALL PROGRESS</span>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <span class="prog-pct">${pct}%</span>
+    </div>
+    ${phasesHTML}
+  `;
+}
+
+function attachHandlers(page) {
+  if (page === 'roadmap') {
+    document.querySelectorAll('.task-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.task;
+        const state = getState();
+        const tasks = state.tasks || [];
+        const idx = tasks.indexOf(id);
+        if (idx >= 0) tasks.splice(idx, 1);
+        else tasks.push(id);
+        state.tasks = tasks;
+        saveState(state);
+        renderPage('roadmap');
+      });
+    });
+  }
+  if (page === 'announce') {
+    const btn = document.getElementById('post-announce-btn');
+    if (btn) btn.addEventListener('click', postAnnounce);
+  }
+  if (page === 'payments_admin') {
+    document.querySelectorAll('.mark-paid-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const user = btn.dataset.user;
+        const pid = btn.dataset.pid;
+        const shared = getSharedState();
+        if (!shared.payments[user]) shared.payments[user] = [];
+        if (!shared.payments[user].includes(pid)) shared.payments[user].push(pid);
+        saveSharedState(shared);
+        renderPage('payments_admin');
+      });
+    });
+  }
+  if (page === 'payments') {
+    document.querySelectorAll('.pay-now-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('Contact Medic Adrenaline on WhatsApp to make payment. Once confirmed, it will be marked as paid here.');
+      });
+    });
+  }
+}
+
+function togglePhase(id) {
+  const el = document.getElementById(`phase-${id}`);
+  el.classList.toggle('open');
+}
+
+function markPhase(id) {
+  const state = getState();
+  const phases = state.phases || [];
+  const idx = phases.indexOf(id);
+  if (idx >= 0) phases.splice(idx, 1);
+  else phases.push(id);
+  state.phases = phases;
+  saveState(state);
+  renderPage('roadmap');
+}
+
+// ===================== PAYMENTS =====================
+function renderPayments() {
+  const shared = getSharedState();
+  const userPaid = shared.payments?.[currentUser] || [];
+
+  const cardsHTML = PAYMENTS.map(p => {
+    const paid = userPaid.includes(p.id);
+    return `<div class="payment-card ${paid ? 'paid' : ''}">
+      <div class="payment-title">${p.title}</div>
+      <div class="payment-desc">${p.desc}</div>
+      <div class="payment-price">${p.price}</div>
+      <div class="payment-includes">
+        <div class="payment-includes-lbl">INCLUDES</div>
+        ${p.includes.map(i => `<div class="include-item">${i}</div>`).join('')}
+      </div>
+      <button class="pay-btn ${paid ? 'pay-btn-done' : 'pay-btn-active pay-now-btn'}" ${paid ? 'disabled' : ''}>
+        ${paid ? '✓ Payment Confirmed' : 'Pay via WhatsApp →'}
+      </button>
+    </div>`;
+  }).join('');
+
+  const historyRows = PAYMENTS.filter(p => userPaid.includes(p.id)).map(p =>
+    `<div class="pay-row">
+      <div>${p.title}</div>
+      <div class="pay-amount">${p.price}</div>
+      <span class="pay-status done">PAID</span>
+    </div>`
+  ).join('') || `<div class="empty-state"><div class="emoji">💳</div>No payments yet</div>`;
+
+  return `
+    <div class="page-header">
+      <div class="page-tag">// PAYMENTS</div>
+      <div class="page-title">Courses & Fees</div>
+      <div class="page-desc">Pay your mentor via WhatsApp. Medic Adrenaline will confirm here once received.</div>
+    </div>
+    <div class="payment-grid">${cardsHTML}</div>
+    <div class="pay-history">
+      <div class="pay-history-head"><span>ITEM</span><span>AMOUNT</span><span>STATUS</span></div>
+      ${historyRows}
+    </div>
+  `;
+}
+
+// ===================== RESOURCES =====================
+function renderResources() {
+  return `
+    <div class="page-header">
+      <div class="page-tag">// RESOURCES</div>
+      <div class="page-title">Concept Library</div>
+      <div class="page-desc">Everything explained in plain English. No links needed — it's all right here.</div>
+    </div>
+    <div class="admin-section">
+      ${PHASES.filter(p => p.explanations && p.explanations.length).map(p => `
+        <div class="section-lbl">${p.label} — ${p.name}</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+          ${p.explanations.map(e => `
+            <div style="background:rgba(34,211,238,0.04);border:1px solid rgba(34,211,238,0.12);border-radius:8px;padding:14px 16px;">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;margin-bottom:6px;">${e.label}</div>
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.7;">${e.body}</div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ===================== ADMIN: STUDENTS =====================
+function renderStudents() {
+  // Pull Dami's state
+  const damiState = JSON.parse(localStorage.getItem('devmentor_oluwadamilola') || '{}');
+  const doneTasks = (damiState.tasks || []).length;
+  const donePhases = (damiState.phases || []).length;
+  const totalTasks = PHASES.reduce((n,p) => n + p.tasks.length, 0);
+  const pct = Math.round((doneTasks / totalTasks) * 100);
+
+  const shared = getSharedState();
+  const paid = (shared.payments?.oluwadamilola || []);
+  const paidLabels = PAYMENTS.filter(p => paid.includes(p.id)).map(p => p.title).join(', ') || 'None yet';
+
+  return `
+    <div class="page-header">
+      <div class="page-tag">// MENTOR PANEL</div>
+      <div class="page-title">Your Students</div>
+      <div class="page-desc">Track everyone's progress at a glance.</div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">👥 Active Students</div>
+      <div class="student-row">
+        <div class="avatar">O</div>
+        <div style="flex:1">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Oluwadamilola</div>
+          <div class="admin-note">Joined: Phase 0 | Tasks done: ${doneTasks}/${totalTasks} | Phases: ${donePhases}/${PHASES.length}</div>
+          <div class="student-prog-bar"><div class="student-prog-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <span class="admin-badge ${paid.length ? 'badge-paid' : 'badge-unpaid'}">${paid.length ? 'PAYMENTS ✓' : 'NO PAYMENT'}</span>
+          <span style="font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace">${pct}% complete</span>
+        </div>
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">💰 Payment Summary — Oluwadamilola</div>
+      ${PAYMENTS.map(p => {
+        const isPaid = paid.includes(p.id);
+        return `<div class="pay-row">
+          <div>${p.title}</div>
+          <div class="pay-amount">${p.price}</div>
+          <span class="pay-status ${isPaid ? 'done' : 'pending'}">${isPaid ? 'PAID' : 'UNPAID'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ===================== ADMIN: PAYMENTS =====================
+function renderPaymentsAdmin() {
+  const shared = getSharedState();
+  const userPaid = shared.payments?.oluwadamilola || [];
+
+  return `
+    <div class="page-header">
+      <div class="page-tag">// ADMIN</div>
+      <div class="page-title">Confirm Payments</div>
+      <div class="page-desc">Mark payments as received once you've confirmed via WhatsApp.</div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Oluwadamilola's Payments</div>
+      ${PAYMENTS.map(p => {
+        const paid = userPaid.includes(p.id);
+        return `<div class="pay-row">
+          <div>
+            <div style="font-weight:600">${p.title}</div>
+            <div style="font-size:12px;color:var(--text-dim)">${p.price}</div>
+          </div>
+          <span class="pay-status ${paid ? 'done' : 'pending'}">${paid ? 'CONFIRMED' : 'PENDING'}</span>
+          <button class="mark-btn mark-paid-btn" data-user="oluwadamilola" data-pid="${p.id}" ${paid ? 'disabled style="opacity:0.4"' : ''}>
+            ${paid ? '✓ Confirmed' : 'Mark Paid'}
+          </button>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ===================== ANNOUNCE =====================
+function renderAnnounce() {
+  const shared = getSharedState();
+  const announces = shared.announcements || [];
+
+  return `
+    <div class="page-header">
+      <div class="page-tag">// ANNOUNCEMENTS</div>
+      <div class="page-title">Post to Students</div>
+      <div class="page-desc">Messages here appear at the top of each student's roadmap.</div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">📣 New Announcement</div>
+      <textarea id="announce-input" placeholder="Type your message to students..."></textarea>
+      <button class="btn-sm btn-orange" id="post-announce-btn">Post Announcement →</button>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Recent Announcements</div>
+      ${announces.length ? announces.map(a => `
+        <div class="announce-box" style="margin-bottom:10px">
+          <div class="announce-text">${a}</div>
+        </div>`).join('') : '<div class="empty-state"><div class="emoji">📭</div>No announcements yet</div>'}
+    </div>
+  `;
+}
+
+function postAnnounce() {
+  const val = document.getElementById('announce-input')?.value?.trim();
+  if (!val) return;
+  const shared = getSharedState();
+  shared.announcements = [val, ...(shared.announcements || [])].slice(0, 5);
+  saveSharedState(shared);
+  renderPage('announce');
+}
+
+// Boot
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+document.getElementById('username').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+</script>
+</body>
+</html>
