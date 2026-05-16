@@ -46,16 +46,17 @@ export function renderRoadmap(PHASES, state, currentRole) {
       </div>`;
     }).join('');
 
-    const explHTML = (p.explanations && p.explanations.length) ? `
-      <div class="section-lbl" style="margin-top:24px">// CONCEPTS EXPLAINED</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        ${p.explanations.map(e => `
-          <div class="concept-card">
-            <div class="concept-label">${e.label}</div>
-            <div class="concept-body">${e.body}</div>
-          </div>
-        `).join('')}
-      </div>` : '';
+    const explHTML = (p.explanations && p.explanations.length)
+      ? '<div class="section-lbl" style="margin-top:24px">// CONCEPTS EXPLAINED</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+        p.explanations.map(e =>
+          '<div class="concept-card">' +
+          '<div class="concept-label">' + e.label + '</div>' +
+          '<div class="concept-body">' + e.body + '</div>' +
+          '</div>'
+        ).join('') +
+        '</div>'
+      : '';
 
     const quizHTML = (p.quiz && p.quiz.length)
       ? '<div style="margin-top:24px">' + renderQuiz(p, s) + '</div>'
