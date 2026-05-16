@@ -541,7 +541,7 @@
     transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1);
   }
 
-  .phase-card.open .phase-body { max-height: 3000px; }
+  .phase-card.open .phase-body { max-height: none; }
 
   .phase-content {
     padding: 0 24px 24px;
