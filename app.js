@@ -48,6 +48,7 @@ window.login = () => {
   if (CREDENTIALS[u] && CREDENTIALS[u].pass === p) {
     currentUser = u;
     currentRole = CREDENTIALS[u].role;
+    localStorage.setItem('devmentor_current_user', u);
     err.style.display = 'none';
     showApp();
   } else {
@@ -187,6 +188,34 @@ window.markPhase = (id) => {
   else s.phases.push(id);
   saveState(s);
   renderPage('roadmap');
+};
+
+
+// ===================== RESET FUNCTIONS =====================
+window.resetStudentProgress = (username) => {
+  if (!confirm('Are you sure you want to clear ALL progress for ' + username + '? This cannot be undone.')) return;
+  localStorage.removeItem('devmentor_' + username);
+  alert('Progress cleared for ' + username);
+  renderPage('students');
+};
+
+window.resetStudentPayments = (username) => {
+  if (!confirm('Are you sure you want to clear ALL payments for ' + username + '? This cannot be undone.')) return;
+  const shared = getSharedState();
+  shared.payments[username] = [];
+  saveSharedState(shared);
+  alert('Payments cleared for ' + username);
+  renderPage('students');
+};
+
+window.markPaymentUnpaid = (username, pid) => {
+  if (!confirm('Mark this payment as UNPAID?')) return;
+  const shared = getSharedState();
+  if (shared.payments[username]) {
+    shared.payments[username] = shared.payments[username].filter(p => p !== pid);
+  }
+  saveSharedState(shared);
+  renderPage('payments_admin');
 };
 
 // ===================== QUIZ INIT =====================

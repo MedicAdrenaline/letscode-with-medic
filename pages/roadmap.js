@@ -5,6 +5,16 @@ export function renderRoadmap(PHASES, state, currentRole) {
   const donePhases = s.phases || [];
   const doneTasks = s.tasks || [];
   const passedQuizzes = s.quizzes || [];
+  const shared = JSON.parse(localStorage.getItem('devmentor_shared') || '{}');
+  const userPaid = shared.payments?.[localStorage.getItem('devmentor_current_user')] || [];
+  
+  // Payment to phase mapping
+  const phasePaymentMap = {
+    1: 'phase1_course',
+    2: 'phase2_course',
+    3: 'phase2_course',
+    4: 'mentorship_monthly',
+  };
 
   const shared = JSON.parse(localStorage.getItem('devmentor_shared') || '{}');
   const announce = shared.announcements?.[0];
@@ -20,7 +30,9 @@ export function renderRoadmap(PHASES, state, currentRole) {
 
   const phasesHTML = PHASES.map(p => {
     const done = donePhases.includes(p.id);
-    const isLocked = p.locked && currentRole !== 'mentor';
+    const paymentId = phasePaymentMap[p.id];
+    const isPaidFor = !paymentId || userPaid.includes(paymentId);
+    const isLocked = p.locked && currentRole !== 'mentor' && !isPaidFor;
     const quizPassed = passedQuizzes.includes(p.id);
 
     if (isLocked) {

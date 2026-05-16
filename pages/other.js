@@ -87,6 +87,8 @@ export function renderStudents(PHASES) {
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
         <span class="admin-badge ${paid.length ? 'badge-paid' : 'badge-unpaid'}">${paid.length ? 'PAYMENTS ✓' : 'NO PAYMENT'}</span>
         <span style="font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace">${pct}% complete</span>
+        <button onclick="resetStudentProgress('${username}')" style="margin-top:4px;padding:4px 10px;border-radius:6px;border:1px solid #f87171;background:transparent;color:#f87171;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;">CLEAR PROGRESS</button>
+        <button onclick="resetStudentPayments('${username}')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;">CLEAR PAYMENTS</button>
       </div>
     </div>`;
   }).join('');
@@ -124,9 +126,10 @@ export function renderPaymentsAdmin() {
             <div style="font-size:12px;color:var(--text-dim)">${p.price}</div>
           </div>
           <span class="pay-status ${paid ? 'done' : 'pending'}">${paid ? 'CONFIRMED' : 'PENDING'}</span>
-          <button class="mark-btn mark-paid-btn" data-user="oluwadamilola" data-pid="${p.id}" ${paid ? 'disabled style="opacity:0.4"' : ''}>
-            ${paid ? '✓ Confirmed' : 'Mark Paid'}
-          </button>
+          ${paid
+            ? `<button class="mark-btn" onclick="markPaymentUnpaid('oluwadamilola', '${p.id}')" style="color:#f87171;border-color:#f87171;">↩ Mark Unpaid</button>`
+            : `<button class="mark-btn mark-paid-btn" data-user="oluwadamilola" data-pid="${p.id}">Mark Paid</button>`
+          }
         </div>`;
       }).join('')}
     </div>
