@@ -106,13 +106,13 @@ const phase01 = {
     {
       question: 'How do you link a CSS file called style.css to your HTML file?',
       options: [
-        '<css src="style.css">',
-        '<link rel="stylesheet" href="style.css"> inside the <head>',
-        '<script src="style.css"></script>',
-        '<style link="style.css">'
+        'css src="style.css"',
+        'link rel="stylesheet" href="style.css" — placed inside the head section',
+        'script src="style.css" /script',
+        'style link="style.css"'
       ],
       answer: 1,
-      explanation: 'You link CSS files in the <head> section using a <link> tag. The rel="stylesheet" tells the browser it\'s a CSS file, and href points to the file path.'
+      explanation: 'You link CSS files in the head section using a link tag. The rel="stylesheet" tells the browser it is a CSS file, and href points to the file path.'
     },
   ],
   note: 'Milestone: By the end of Phase 01, your laptop is fully set up, you understand how the web works, and you have a real personal webpage pushed to GitHub. You cannot proceed until you pass the quiz.'
